@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -39,17 +40,27 @@ class Server {
   static void isolateFunction((SendPort, RootIsolateToken) params) {
     final SendPort mainSendPort = params.$1;
     final RootIsolateToken rootIsolateToken = params.$2;
-
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     final receivePort = ReceivePort();
     mainSendPort.send(receivePort.sendPort);
     ServerSocket? serverSocket;
+    BonsoirBroadcast? bonsoirBroadcast;
     receivePort.listen(
       (message) async {
         if (message == 'START_SERVER') {
           serverSocket = await ServerSocket.bind(InternetAddress.anyIPv4, 0);
           mainSendPort.send(
               'SERVER_STARTED | ${serverSocket?.address.host}:${serverSocket?.port}');
+          final bonsoirService = BonsoirService(
+            name: 'LINK',
+            type: '_link._tcp',
+            port: serverSocket!.port,
+            attributes: {'host': serverSocket!.address.host},
+          );
+          bonsoirBroadcast = BonsoirBroadcast(service: bonsoirService);
+          await bonsoirBroadcast?.ready;
+          await bonsoirBroadcast?.start();
+          mainSendPort.send('BROADCASTING');
         } else if (message == 'CLOSE_SERVER') {
           await serverSocket?.close();
           mainSendPort.send('SERVER_CLOSED');

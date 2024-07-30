@@ -14,11 +14,12 @@ class _LinkState extends State<Link> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           IconButton(
+            style: IconButton.styleFrom(backgroundColor: Colors.greenAccent),
             onPressed: () async {
               _server = Server();
               await _server?.open();
@@ -26,6 +27,7 @@ class _LinkState extends State<Link> {
             icon: const Icon(Icons.play_arrow_rounded),
           ),
           IconButton(
+            style: IconButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () {
               if (_server != null) {
                 _server?.close();
